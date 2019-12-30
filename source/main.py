@@ -52,8 +52,46 @@ def test_joystick_handler(args):
     print ("exiting!")
     return 0
     
-def main(args):
+def test_periodic_task():
     from weather_station.sensors import SensorManager
+    from sense_emu import SenseHat
+    import time
+    
+    
+    hat = SenseHat()
+    manager = SensorManager.PeriodicTask(hat.get_humidity, 1, 20)
+    manager.start()
+    
+    while True:
+        average = manager.get_average()
+        print("average = " + str(average.timestamp) + ", " + str(average.value))
+        time.sleep(0.25)
+        print("out of sleep")
+  
+def main(args):
+    import threading
+    import time
+    from sense_emu import SenseHat
+    from weather_station.sensors import SensorManager
+    
+    manager = SensorManager.SensorManager(SenseHat())
+    manager.start()
+    
+    def get_averages():
+        print("----------------")
+        for sensor in SensorManager.SensorEnum:
+            print(sensor.name)
+            print(manager.get_average(sensor).value)
+        print("----------------")
+
+    for i in range(0, 360):
+        print(i)
+        time.sleep(1)
+        get_averages()
+        
+    manager.stop()
+
+    print("exit!")
     
 
 if __name__ == '__main__':
